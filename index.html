@@ -142,8 +142,15 @@
               });              
 
             }
-            $('.column').width($('.column img').first().width());
-            $('.videos').width($('.column img').first().width()*(Math.ceil(items.length/3)));
+         
+            var interval = setInterval(function() {
+              if($('.column img').length > 0) {
+                $('.videos').width($('.column img').first().width()*(Math.ceil(items.length/3)));
+                $('.column').width($('.column img').first().width());
+                clearInterval(interval);
+              }
+            }, 500);
+         
           }
         });
         $( "#close-overlay" ).click(function() {
