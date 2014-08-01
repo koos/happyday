@@ -24,11 +24,11 @@
         padding: 0;
         margin: 0;
       }
- 
+
       div {
         box-sizing: border-box;
       }
- 
+
       body {
         overflow-y: hidden;
         width: 100%;
@@ -40,23 +40,26 @@
         color: #aaa;
         text-decoration: underline;
       }
- 
+
       .videos {
         float: left;
         max-height: 100%;
+        overflow-x: hidden;
+        background-color: black;
         /*  pointer-events: none;*/
       }
-      
-      .column {
+
+      .row {
         position: relative;
-        height: 100%;
+        /*height: 33.333333%;*/
+        width: 100%;
         float: left;
       }
 
-      .column img {
-        height: 33.333333%;
-        width: auto;
+      .row img {
+        width: 33.3%;
         display: block;
+        float: left;
       }
 
       .addthis_toolbox {
@@ -68,8 +71,8 @@
         position: absolute;
         top: 50%;
         left: 50%;
-        margin-left: -450;
-        margin-top: -350px;
+        width: 80%;
+        max-width: 960px;
         background-color: rgba(225, 228, 0, 0.5);
         box-shadow: 0px 0px 5px rgba(0,0,0,0.8);
         border-radius: 5px;
@@ -95,23 +98,34 @@
   </head>
   <body>
     <div class='overlay'>
-      <iframe width="900" height="506" src="http://www.youtube.com/embed/GINbI5CMt3I?rel=0&autoplay=0" frameborder="0" allowfullscreen autostart id="GINbI5CMt3I"></iframe>
-      <a href="#" id="close-overlay" onClick="event.preventDefault(); return false;">Close</a>
+      <iframe src="http://www.youtube.com/embed/GINbI5CMt3I?rel=0&autoplay=0" frameborder="0" allowfullscreen autostart id="GINbI5CMt3I"></iframe>
     </div>
     <div class='videos'>
     </div>
     <script type="text/javascript">
       jQuery(document).ready(function ($) {
-        var url = "http://gdata.youtube.com/feeds/api/videos/?v=2&q=happyday+happy+edition&alt=jsonc&max-results=50&callback=?"
+        var url = "http://gdata.youtube.com/feeds/api/videos/?v=2&q=happyday+happy+edition&alt=jsonc&max-results=50&callback=?";
+
+        var positionOverlay = function() {
+          console.log('resize');
+          $('.overlay').css({
+            'margin-left': -($('.overlay').outerWidth()/2),
+            'margin-top': -($('.overlay').outerHeight()/2)
+          });
+          console.log($('.overlay').outerWidth() - 30);
+          $('.overlay iframe').width($('.overlay').innerWidth() - 60);
+          $('.overlay iframe').height($('.overlay').innerWidth() * 9/16);
+        };
+
+
         $.getJSON(url, function (json) {
-          var count = 0;
           if (json.data.items) {
             var items = json.data.items;
             var item = items[Math.floor(Math.random()*items.length)];
             $('.overlay').empty();
-            $('.overlay').append('<iframe width="900" height="506" src="http://www.youtube.com/embed/'+item.id+'?rel=0&autoplay=1" frameborder="0" allowfullscreen autostart></iframe>');
-            $('.overlay').append('<a href="#" id="close-overlay" onClick="event.preventDefault(); return false;">Close</a>');
+            $('.overlay').append('<iframe src="http://www.youtube.com/embed/'+item.id+'?rel=0&autoplay=1" frameborder="0" allowfullscreen autostart></iframe>');
             $('.overlay').show();
+            positionOverlay();
           }
           console.log(items);
           if (items.length === 0) {
@@ -119,57 +133,51 @@
           } else {
             for(var i = 0; i < items.length; i++) {
               if( i % 3 == 0) {
-                $('.videos').append($('<div>', { "class": "column" }));
+                $('.videos').append($('<div>', { "class": "row" }));
               }
-              $('.videos .column').last().append($('<img>', { 
+              $('.videos .row').last().append($('<img>', {
                 src : items[i].thumbnail.hqDefault,
-                alt : items[i].title, 
+                alt : items[i].title,
                 title : items[i].title,
                 id: items[i].id,
                 "class": 'video-item'
-              }));              
+              }));
 
 
               $("#"+items[i].id).click(function() {
                 $('.overlay').empty();
-                $('.overlay').append('<iframe width="900" height="506" src="http://www.youtube.com/embed/'+$(this).attr('id')+'?rel=0&autoplay=1" frameborder="0" allowfullscreen autostart></iframe>');
-                $('.overlay').append('<a href="#" id="close-overlay" onClick="event.preventDefault(); return false;">Close</a>');
+                $('.overlay').append('<iframe src="http://www.youtube.com/embed/'+$(this).attr('id')+'?rel=0&autoplay=1" frameborder="0" allowfullscreen autostart></iframe>');
                 $('.overlay').show();
+                positionOverlay();
               });
 
-              $( "#close-overlay" ).click(function() {
-                $('.overlay').hide();
-              });              
-
             }
-         
+
             var interval = setInterval(function() {
-              if($('.column img').length > 0) {
-                $('.videos').width($('.column img').first().width()*(Math.ceil(items.length/3)));
-                $('.column').width($('.column img').first().width());
+              if($('.row img').length > 0) {
+                // $('.videos').width($('.row img').first().width()*(Math.ceil(items.length/3)));
+                // $('.row').width($('.row img').first().width());
                 clearInterval(interval);
               }
             }, 500);
-         
+
           }
-        });
-        $( "#close-overlay" ).click(function() {
-          $('.overlay').hide();
         });
         //run once
         var el=$('.overlay');
-        var originalelpos=el.offset().left + $('.overlay').width() / 2; // take it where it originally is on the page
-        //run on scroll
-         $(window).scroll(function(){
-            var el = $('.overlay'); // important! (local)
-            var elpos = el.offset().left; // take current situation
-            var windowpos = $(window).scrollLeft();
-            var finaldestination = windowpos+originalelpos;
-            el.stop().animate({'left':finaldestination},500);
-         });
+        var originalelpos=el.offset().top + $('.overlay').height() / 2; // take it where it originally is on the page
+        // //run on scroll
+        //  $(window).scroll(function(){
+        //     var el = $('.overlay'); // important! (local)
+        //     var elpos = el.offset().top; // take current situation
+        //     var windowpos = $(window).scrollTop();
+        //     var finaldestination = windowpos+originalelpos;
+        //     el.stop().animate({'top':finaldestination},500);
+        //  });
 
+        $(window).on('resize', positionOverlay);
       });
-    </script> 
+    </script>
 
     <footer>
       Spread the happiness on Twitter and Facebook!
@@ -181,7 +189,7 @@
         <a class="addthis_button_linkedin_counter" li:counter="top"></a>
         <a class="addthis_counter"></a>
       </div>
-      Happyday is a <a href="http://4hourventure.com" rel="nofollow">4 hour venture</a> by <a href="http://twitter.com/koos" rel="nofollow">@koos</a> and <a href="http://twitter.com/yoyostile" rel="nofollow">@yoyostile</a>. <a href="http://happyvideo.co">Happyvideo</a>. Scroll to the right →</div>
+      Happyday is a <a href="http://4hourventure.com" rel="nofollow">4 hour venture</a> by <a href="http://twitter.com/koos" rel="nofollow">@koos</a> and <a href="http://twitter.com/yoyostile" rel="nofollow">@yoyostile</a>.
       <script type="text/javascript">var addthis_config = {"data_track_addressbar":true};</script>
       <noscript><div id="noscript">(please enable javascript)<span>This is pure happiness!</span></div></noscript>
       <script type="text/javascript">
